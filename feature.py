@@ -1,6 +1,5 @@
 import numpy
 
-
 class NPDFeature():
     """It is a tool class to extract the NPD features.
 
@@ -31,6 +30,8 @@ class NPDFeature():
             for j in range(i + 1, self.n_pixels, 1):
                 self.features[count] = NPDFeature.__NPD_table__[self.image[i]][self.image[j]]
                 count += 1
+        print(self.features.shape)
+        print(self.features)
         return self.features
 
     @staticmethod
