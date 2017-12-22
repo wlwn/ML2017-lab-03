@@ -22,8 +22,8 @@ class AdaBoostClassifier:
         '''Optional'''
         y_pred = self.predict(X)
         y_pred.resize((len(y_pred),1))
-        idx = np.where((y_pred-y)==0)   
-        return len(idx[1])
+        idx = np.where((y_pred-y)!=0)   
+        return len(idx[1]) #return the number of wrong prediction
 
     def fit(self,X,y):
         '''Build a boosted classifier from the training set (X, y).
@@ -40,22 +40,32 @@ class AdaBoostClassifier:
             self.alpha.setdefault(i)
         self.sum=np.zeros(y.shape)    
         self.W=np.ones((n,1))/n 
-        self.cnt=0 
+        self.cnt=0 # initialize
         for i in range(self.M):
             w = self.W.flatten(1)
             self.G[i] = self.weaker.fit(X,y,sample_weight=w)
-            e = self.G[i].score(X,y,sample_weight=w)
-            if (1-e) > 0.5:
-                break
-            self.alpha[i] = 1/2*np.log((1-e)/e)
+            e = 1-self.G[i].score(X,y,sample_weight=w)
+            if e > 0.5:
+                break # bad classifier
+            self.alpha[i] = 1/2*np.log((1-e)/max(e,1e-16))
             h = self.G[i].predict(X)
             h.resize((n,1))
-            #print('h',h)
+            #print('h',h[:10])
             Z = np.multiply(self.W,np.exp(-self.alpha[i]*np.multiply(y,h)))
-            #print('Z',Z)
+            #print('Z',Z[:10])
             self.W = (Z/Z.sum())
-            #print('W',self.W)
-            self.cnt = i+1
+            #print('W',self.W[:10])
+            #print(self.W.sum()) # the sum should be 1
+
+            self.cnt = i+1 # number of weakers
+            
+            #show the result in each iteration
+            #target_names = ['NEGATIVE', 'POSITIVE']
+            #y_pred = AdaBoost.predict(X)
+            #result = classification_report(y,y_pred,target_names=target_names)            
+            #print(result)
+            #print(self.is_good_enough(X,y))
+
             if self.is_good_enough(X,y) == 0:
                 print(self.cnt,"weak classifiers is already good enough.")
                 break
@@ -71,7 +81,7 @@ class AdaBoostClassifier:
         '''
         sum = np.zeros((X.shape[0],1))
         for i in range(self.cnt):
-            t = -self.G[i].predict(X).flatten(1)*self.alpha[i] 
+            t = self.G[i].predict(X).flatten(1)*self.alpha[i] 
             t.resize((X.shape[0],1))
             sum = sum+t
         return sum
@@ -101,4 +111,3 @@ class AdaBoostClassifier:
     def load(filename):
         with open(filename, "rb") as f:
             return pickle.load(f)
-

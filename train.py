@@ -43,11 +43,13 @@ if __name__ == "__main__":
     print('the size of X:',x.shape)
     print('the size of y:',y.shape)
     x_train,x_test,y_train,y_test = train_test_split(x,y,test_size = 0.33)
-    print(y_test)
-    AdaBoost = AdaBoostClassifier(DecisionTreeClassifier(max_depth=1),3)
+
+    #AdaBoosting
+    AdaBoost = AdaBoostClassifier(DecisionTreeClassifier(max_depth=2),10)
     AdaBoost.fit(x_train,y_train)
     print('the wrong number of train sample:',AdaBoost.is_good_enough(x_train,y_train))
 
+    #show the result
     target_names = ['NEGATIVE', 'POSITIVE']
     y_pred = AdaBoost.predict(x_test)
     result = classification_report(y_test,y_pred,target_names=target_names)
